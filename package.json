@@ -1,0 +1,28 @@
+{
+  "name": "lag-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for gnulag",
+  "main": "build/index.js",
+  "scripts": {
+    "build:typescript": "npx tsc",
+    "run:node": "node build/index.js",
+    "dev": "nodemon --watch src/ -e ts --exec ts-node index.ts",
+    "run": "npm run build:typescript && npm run run:node",
+    "lint": "eslint src/**/*.ts",
+    "lint-fix": "eslint src/**/*.ts --fix"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
+    "@typescript-eslint/parser": "^5.33.1",
+    "eslint": "^8.22.0",
+    "nodemon": "^2.0.19",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "discord.js": "^14.2.0",
+    "dotenv": "^16.0.1"
+  }
+}
