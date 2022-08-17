@@ -1,26 +1,18 @@
-import { Client, GatewayIntentBits } from 'discord.js';
-import dotenv from 'dotenv';
+import 'reflect-metadata';
+import { Container } from 'typedi';
+import DiscordService from './services/discord.service';
+import PingCommand from './commands/ping.command';
+import CommandInterface from './command.interface';
 
-dotenv.config();
+const discordService = Container.get(DiscordService);
 
-const client = new Client({intents: [GatewayIntentBits.Guilds]});
-
-client.once('ready', () => {
-    console.log('Ready!');
-})
-
-client.login(process.env.BOT_SECRET).then(() => {
-    console.log('Client logged in');
+const commands = new Array<CommandInterface>()
+commands.push(Container.get(PingCommand))
+discordService.init().then(() => {
+    console.log('DiscordService started');
+    commands.forEach((command: CommandInterface) => {
+        command.init();
+    })
 }).catch((e) => {
-    console.error('Error logging in', e);
-});
-
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand()) return;
-
-    const { commandName } = interaction;
-
-    if (commandName === 'ping') {
-        await interaction.reply('Pong!');
-    }
+    console.error(e);
 });
