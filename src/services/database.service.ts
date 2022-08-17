@@ -1,8 +1,7 @@
 import ServiceInterface from '../service.interface';
-import { addRxPlugin, createRxDatabase, RxCollection, RxDatabase, RxDocument } from 'rxdb';
-import { getRxStorageDexie } from 'rxdb/plugins/dexie';
+import { addRxPlugin, createRxDatabase, RxDatabase } from 'rxdb';
 import { Message } from 'discord.js';
-import { quoteSchema, QuoteDocType, QuoteCollection, QuoteDocument } from '../schemas/quote.schema';
+import { quoteSchema, QuoteCollection } from '../schemas/quote.schema';
 import { Service } from 'typedi';
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
@@ -62,13 +61,16 @@ export default class DatabaseService implements ServiceInterface {
         if (this.database === undefined)
             return;
 
-        const message = await this.database.quotes.findOne()
+        const messages = await this.database.quotes.find()
             .where('userId').eq(userId)
             .where('channelId').eq(channelId)
             .where('guildId').eq(guildId)
             .exec();
 
-        if (message) {
+        if (messages) {
+            const message = messages.pop();
+            if (message === undefined)
+                return;
             return message.content;
         }
         return;
