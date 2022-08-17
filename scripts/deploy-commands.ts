@@ -5,7 +5,34 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const commands = [
-    new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!')
+    new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
+    new SlashCommandBuilder()
+        .setName('quote')
+        .setDescription('Save and recall messages')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('add')
+                .setDescription('Save a message sent by a user')
+                .addUserOption(
+                    option =>
+                        option
+                            .setName('user')
+                            .setDescription('The user to quote')
+                            .setRequired(true)
+
+                )
+        )
+        .addSubcommand(subcommand =>
+        subcommand
+            .setName('getlast')
+            .setDescription('Get the last quote from a user')
+            .addUserOption(option =>
+            option
+                .setName('user')
+                .setDescription('The user to fetch')
+                .setRequired(true)
+            )
+        )
 ].map(command => command.toJSON());
 
 if (process.env.BOT_SECRET !== undefined &&

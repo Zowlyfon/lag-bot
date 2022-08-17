@@ -5,17 +5,12 @@ import CommandInterface from '../command.interface';
 
 @Service()
 export default class PingCommand implements CommandInterface {
+    command = 'ping';
     constructor(private discordService: DiscordService) {}
 
     init(): void {
-        this.discordService.getInteractions().subscribe(async (interaction: (Interaction | undefined)) => {
-            if (interaction !== undefined && interaction.isChatInputCommand()) {
-                const { commandName } = interaction;
-
-                if (commandName === 'ping') {
-                    await interaction.reply('Pong!');
-                }
-            }
-        });
+        this.discordService.onChatCommand(this.command).subscribe(async interaction => {
+            await interaction.reply('Pong!');
+        })
     }
 }
