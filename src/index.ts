@@ -7,6 +7,7 @@ import QuoteCommand from './commands/quote.command';
 import MessageHistoryService from './services/message-history.service';
 import ServiceInterface from './service.interface';
 import QuoteService from './services/quote.service';
+import DatabaseService from './services/database.service';
 
 const discordService = Container.get(DiscordService);
 
@@ -17,6 +18,7 @@ commands.push(Container.get(QuoteCommand));
 const services = new Array<ServiceInterface>();
 services.push(Container.get(MessageHistoryService));
 services.push(Container.get(QuoteService));
+services.push(Container.get(DatabaseService));
 
 discordService.init().then(() => {
     console.log('DiscordService started');

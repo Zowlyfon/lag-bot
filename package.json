@@ -24,8 +24,11 @@
   },
   "dependencies": {
     "@discordjs/rest": "^1.0.1",
+    "dexie": "^4.0.0-alpha.4",
     "discord.js": "^14.2.0",
     "dotenv": "^16.0.1",
+    "leveldown": "^6.1.1",
+    "pouchdb-adapter-leveldb": "^7.3.0",
     "reflect-metadata": "^0.1.13",
     "rxdb": "^12.7.16",
     "rxjs": "^7.5.6",
