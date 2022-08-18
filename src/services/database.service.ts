@@ -1,7 +1,7 @@
 import ServiceInterface from '../service.interface';
 import { addRxPlugin, createRxDatabase, RxDatabase } from 'rxdb';
 import { Message } from 'discord.js';
-import { quoteSchema, QuoteCollection, QuoteDocument } from '../schemas/quote.schema';
+import { QuoteCollection, QuoteDocument, quoteSchema } from '../schemas/quote.schema';
 import { Service } from 'typedi';
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
@@ -57,19 +57,14 @@ export default class DatabaseService implements ServiceInterface {
         });
     }
 
-    async getQuotes(userId: string, channelId: string, guildId: string) {
+    async getQuotes(userId: string, channelId: string, guildId: string): Promise<QuoteDocument[]> {
         if (this.database === undefined)
-            return;
+            return [];
 
-        const messages: QuoteDocument[] = await this.database.quotes.find()
+        return await this.database.quotes.find()
             .where('userId').eq(userId)
             .where('channelId').eq(channelId)
             .where('guildId').eq(guildId)
             .exec();
-
-        if (messages) {
-            return messages;
-        }
-        return;
     }
 }

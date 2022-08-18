@@ -9,6 +9,7 @@ import {
 } from 'discord.js';
 import EnvironmentService from './environment.service';
 import ServiceInterface from '../service.interface';
+import CommandInterface from '../command.interface';
 
 @Service()
 export default class DiscordService implements ServiceInterface{
@@ -16,12 +17,15 @@ export default class DiscordService implements ServiceInterface{
     private readonly interactions: Subject<Interaction>;
     private readonly chatCommands: Subject<ChatInputCommandInteraction>;
 
+    private commands: Array<CommandInterface>;
+
     private client: Client | undefined;
 
     constructor(private env: EnvironmentService) {
         this.messages = new Subject<Message>();
         this.interactions = new Subject<Interaction>();
         this.chatCommands = new Subject<ChatInputCommandInteraction>();
+        this.commands = new Array<CommandInterface>();
     }
 
     async init() {
@@ -83,5 +87,13 @@ export default class DiscordService implements ServiceInterface{
             return user;
         }
         return;
+    }
+
+    setCommands(commands: Array<CommandInterface>): void {
+        this.commands = commands;
+    }
+
+    getCommands(): Array<CommandInterface> {
+        return this.commands;
     }
 }

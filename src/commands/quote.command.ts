@@ -4,7 +4,13 @@ import DiscordService from '../services/discord.service';
 import MessageHistoryService from '../services/message-history.service';
 import QuoteService from '../services/quote.service';
 import EnvironmentService from '../services/environment.service';
-import { ChatInputCommandInteraction, Formatters } from 'discord.js';
+import {
+    ChatInputCommandInteraction,
+    italic,
+    SlashCommandBuilder,
+    SlashCommandSubcommandsOnlyBuilder,
+    userMention
+} from 'discord.js';
 import { QuoteDocument } from '../schemas/quote.schema';
 
 @Service()
@@ -80,11 +86,50 @@ export default class QuoteCommand implements CommandInterface {
         if (message !== undefined) {
             const quotedUser = await this.discordService.getUserById(message.userId);
             if (quotedUser !== undefined)
-                await interaction.reply('"' + message.content + '"' + ' - ' + Formatters.userMention(quotedUser.id));
+                await interaction.reply(italic('"' + message.content + '"') + ' - ' + userMention(quotedUser.id));
             else
                 await interaction.reply('"' + message.content + '"');
         } else {
-            await interaction.reply({content: 'No quoted found', ephemeral: true})
+            await interaction.reply({content: 'No quotes found', ephemeral: true})
         }
+    }
+
+    slashCommandBuilder(): SlashCommandSubcommandsOnlyBuilder | SlashCommandBuilder {
+        return new SlashCommandBuilder()
+            .setName(this.command)
+            .setDescription('Save and recall messages')
+            .addSubcommand(subcommand =>
+            subcommand
+                .setName('add')
+                .setDescription('Save a message sent by a user')
+                .addUserOption(option =>
+                option
+                    .setName('user')
+                    .setDescription('The user to quote')
+                    .setRequired(true)
+                )
+            )
+            .addSubcommand(subcommand =>
+            subcommand
+                .setName('last')
+                .setDescription('Retrieve the last quote from a user')
+                .addUserOption(option =>
+                option
+                    .setName('user')
+                    .setDescription('The user to fetch')
+                    .setRequired(true)
+                )
+            )
+            .addSubcommand(subcommand =>
+            subcommand
+                .setName('rand')
+                .setDescription('Retrieve a random quote from a user')
+                .addUserOption(option =>
+                option
+                    .setName('user')
+                    .setDescription('The user to fetch')
+                    .setRequired(true)
+                )
+            );
     }
 }

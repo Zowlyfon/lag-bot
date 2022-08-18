@@ -8,6 +8,7 @@ import MessageHistoryService from './services/message-history.service';
 import ServiceInterface from './service.interface';
 import QuoteService from './services/quote.service';
 import DatabaseService from './services/database.service';
+import DeployCommand from './global-commands/deploy.command';
 
 const discordService = Container.get(DiscordService);
 
@@ -22,9 +23,19 @@ services.push(Container.get(DatabaseService));
 
 discordService.init().then(() => {
     console.log('DiscordService started');
+
+    discordService.setCommands(commands);
+
+
+
     commands.forEach((command: CommandInterface) => {
         command.init();
     });
+
+    const deployCommand = Container.get(DeployCommand);
+
+    deployCommand.init();
+
 
     services.forEach((service: ServiceInterface) => {
         service.init();
