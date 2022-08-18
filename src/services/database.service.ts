@@ -26,7 +26,7 @@ export default class DatabaseService implements ServiceInterface {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         addPouchPlugin(require('pouchdb-adapter-leveldb'))
         this.database = await createRxDatabase<LagDatabaseCollections>({
-            name: 'lagdb',
+            name: 'database/lagdb',
             storage: getRxStoragePouch(leveldown)
         })
 
