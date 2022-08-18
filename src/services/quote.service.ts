@@ -1,7 +1,6 @@
 import ServiceInterface from '../service.interface';
 import { Service } from 'typedi';
-import fs from 'fs';
-import { Message, User } from 'discord.js';
+import { Message } from 'discord.js';
 import DatabaseService from './database.service';
 
 @Service()
@@ -11,6 +10,7 @@ export default class QuoteService implements ServiceInterface {
     }
 
     init(): void {
+        return;
     }
 
     async addQuote(message: Message, savedById: string) {
@@ -18,10 +18,17 @@ export default class QuoteService implements ServiceInterface {
     }
 
     async getLastQuote(userId: string, channelId: string, guildId: string) {
-        const content = this.dbService.getQuote(userId, channelId, guildId);
-        if (content !== undefined) {
-            return content;
+        const messages = await this.dbService.getQuotes(userId, channelId, guildId);
+        if (messages !== undefined) {
+            return messages.reverse().pop();
         }
         return;
+    }
+
+    async getRandomQuote(userId: string, channelId: string, guildId: string) {
+        const messages = await this.dbService.getQuotes(userId, channelId, guildId);
+        if (messages !== undefined) {
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
     }
 }

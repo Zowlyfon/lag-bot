@@ -1,6 +1,12 @@
 import { Service } from 'typedi';
-import {Subject, filter, map, Observable} from 'rxjs';
-import {Client, IntentsBitField, Message, Interaction, ChatInputCommandInteraction} from 'discord.js';
+import {Subject, filter} from 'rxjs';
+import {
+    Client,
+    IntentsBitField,
+    Message,
+    Interaction,
+    ChatInputCommandInteraction
+} from 'discord.js';
 import EnvironmentService from './environment.service';
 import ServiceInterface from '../service.interface';
 
@@ -9,6 +15,8 @@ export default class DiscordService implements ServiceInterface{
     private readonly messages: Subject<Message>;
     private readonly interactions: Subject<Interaction>;
     private readonly chatCommands: Subject<ChatInputCommandInteraction>;
+
+    private client: Client | undefined;
 
     constructor(private env: EnvironmentService) {
         this.messages = new Subject<Message>();
@@ -19,24 +27,24 @@ export default class DiscordService implements ServiceInterface{
     async init() {
         const intents = new IntentsBitField();
         intents.add(IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent);
-        const client = new Client({intents});
+        this.client = new Client({intents});
 
-        client.once('ready', () => {
+        this.client.once('ready', () => {
             console.log('Ready!');
         })
 
-        client.login(this.env.getBotSecret()).then(() => {
+        this.client.login(this.env.getBotSecret()).then(() => {
             console.log('Client logged in');
         }).catch((e) => {
             console.error('Error logging in', e);
         });
 
-        client.on('interactionCreate', async (interaction: Interaction) => {
+        this.client.on('interactionCreate', async (interaction: Interaction) => {
             console.log('interaction', interaction);
             this.interactions.next(interaction);
         });
 
-        client.on('messageCreate', async (message: Message) => {
+        this.client.on('messageCreate', async (message: Message) => {
             console.log('message', message);
             this.messages.next(message);
         });
@@ -66,4 +74,14 @@ export default class DiscordService implements ServiceInterface{
         }));
     }
 
+    async getUserById(userId: string) {
+        if (this.client === undefined)
+            return;
+
+        const user = await this.client.users.fetch(userId);
+        if (user !== undefined) {
+            return user;
+        }
+        return;
+    }
 }

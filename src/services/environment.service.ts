@@ -30,4 +30,12 @@ export default class EnvironmentService {
         }
         return "";
     }
+
+    getGodId(): string {
+        const godId = process.env.BOT_GOD;
+        if (godId !== undefined) {
+            return godId;
+        }
+        return "";
+    }
 }

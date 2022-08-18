@@ -24,8 +24,19 @@ const commands = [
         )
         .addSubcommand(subcommand =>
         subcommand
-            .setName('getlast')
+            .setName('last')
             .setDescription('Get the last quote from a user')
+            .addUserOption(option =>
+            option
+                .setName('user')
+                .setDescription('The user to fetch')
+                .setRequired(true)
+            )
+        )
+        .addSubcommand(subcommand =>
+        subcommand
+            .setName('rand')
+            .setDescription('Get a random quote from a user')
             .addUserOption(option =>
             option
                 .setName('user')
