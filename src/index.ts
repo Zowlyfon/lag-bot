@@ -10,6 +10,8 @@ import DatabaseService from './services/database.service';
 import DeployCommand from './global-commands/deploy.command';
 import { ChatInputCommandInteraction } from 'discord.js';
 import DisableCommandCommand from './commands/disable-command.command';
+import DiceCommand from './commands/dice.command';
+import WolframAlphaCommand from './commands/wolfram-alpha.command';
 
 const discordService = Container.get(DiscordService);
 
@@ -17,6 +19,8 @@ const commands = new Array<CommandInterface>();
 commands.push(Container.get(PingCommand));
 commands.push(Container.get(QuoteCommand));
 commands.push(Container.get(DisableCommandCommand));
+commands.push(Container.get(DiceCommand));
+commands.push(Container.get(WolframAlphaCommand));
 
 const services = new Array<ServiceInterface>();
 services.push(Container.get(QuoteService));

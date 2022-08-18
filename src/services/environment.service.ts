@@ -38,4 +38,12 @@ export default class EnvironmentService {
         }
         return "";
     }
+
+    getWolframAlphaToken(): string {
+        const wa = process.env.WOLFRAM_ALPHA;
+        if (wa) {
+            return wa;
+        }
+        return "";
+    }
 }
