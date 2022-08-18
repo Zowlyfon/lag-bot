@@ -2,17 +2,25 @@ import CommandInterface from '../command.interface';
 import DiscordService from '../services/discord.service';
 import EnvironmentService from '../services/environment.service';
 import { REST } from '@discordjs/rest';
-import { PermissionsBitField, Routes, SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js';
+import {
+    ChatInputCommandInteraction,
+    PermissionsBitField,
+    Routes,
+    SlashCommandBuilder,
+    SlashCommandSubcommandsOnlyBuilder
+} from 'discord.js';
 import { Service } from 'typedi';
+import DatabaseService from '../services/database.service';
 
 @Service()
 export default class DeployCommand implements CommandInterface {
     command = 'deploy';
     constructor(private discordService: DiscordService,
-                private env: EnvironmentService) {
+                private env: EnvironmentService,
+                private db: DatabaseService) {
     }
 
-    init(): void {
+    async init() {
         const rest = new REST({ version: '10' }).setToken(this.env.getBotSecret());
 
         const commandsToDeploy = [this.slashCommandBuilder().toJSON()];
@@ -22,6 +30,9 @@ export default class DeployCommand implements CommandInterface {
             .catch((e) => console.error(e));
 
         this.discordService.onChatCommand(this.command).subscribe(async interaction => {
+            if (!interaction.guildId)
+                return;
+
             if (!interaction.member ||
                 typeof interaction.member.permissions === 'string' ||
                 !interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
@@ -30,7 +41,14 @@ export default class DeployCommand implements CommandInterface {
             }
 
             const rest = new REST({ version: '10' }).setToken(this.env.getBotSecret());
-            const commands = this.discordService.getCommands().map(c => c.slashCommandBuilder().toJSON());
+
+            const disabledCommandClasses = await this.db.getDisabledCommands(interaction.guildId);
+
+            const disabledCommands = disabledCommandClasses.map(c => c.command);
+
+            const commands = this.discordService.getCommands()
+                .filter(async c => disabledCommands.find(d => c.command === d))
+                .map(c => c.slashCommandBuilder().toJSON());
 
 
             if (!interaction.guildId)
@@ -43,6 +61,10 @@ export default class DeployCommand implements CommandInterface {
                     interaction.reply('Failed to register commands :(');
                 })
         })
+    }
+
+    async runCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+        return;
     }
 
     slashCommandBuilder(): SlashCommandSubcommandsOnlyBuilder | SlashCommandBuilder {

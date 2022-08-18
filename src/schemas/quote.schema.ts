@@ -43,7 +43,7 @@ export const quoteSchemaLiteral = {
     indexes: ['userId', 'channelId', 'guildId', 'savedById']
 } as const;
 
-export const schemaTyped = toTypedRxJsonSchema(quoteSchemaLiteral);
+const schemaTyped = toTypedRxJsonSchema(quoteSchemaLiteral);
 
 export type QuoteDocType = ExtractDocumentTypeFromTypedRxJsonSchema<typeof schemaTyped>;
 

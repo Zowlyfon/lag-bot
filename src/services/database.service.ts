@@ -6,12 +6,14 @@ import { Service } from 'typedi';
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
 import { addPouchPlugin, getRxStoragePouch } from 'rxdb//plugins/pouchdb';
+import { DisabledCommandGuildCollection, disabledCommandGuildSchema } from '../schemas/disabled-command-guild.schema';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const leveldown = require('leveldown')
 
 type LagDatabaseCollections = {
-    quotes: QuoteCollection
+    quotes: QuoteCollection,
+    disabledcommandguilds: DisabledCommandGuildCollection
 }
 
 type LagDatabase = RxDatabase<LagDatabaseCollections>
@@ -36,6 +38,9 @@ export default class DatabaseService implements ServiceInterface {
         await this.database.addCollections({
             quotes: {
                 schema: quoteSchema
+            },
+            disabledcommandguilds: {
+                schema: disabledCommandGuildSchema
             }
         })
     }
@@ -67,4 +72,47 @@ export default class DatabaseService implements ServiceInterface {
             .where('guildId').eq(guildId)
             .exec();
     }
+
+    async addDisabledCommand(guildId: string, command: string) {
+        if (this.database === undefined)
+            return;
+
+        await this.database.disabledcommandguilds.insert({
+            id: guildId + '|' + command,
+            guildId,
+            command
+        });
+    }
+
+    async removeDisabledCommand(guildId: string, command: string) {
+        if (!this.database)
+            return;
+
+        const disabledCommand = await this.database.disabledcommandguilds.findOne()
+            .where('id').eq(guildId + '|' + command)
+            .exec();
+
+        if (disabledCommand) {
+            return await disabledCommand.remove();
+        }
+        return false;
+    }
+
+    async getDisabledCommand(guildId: string, command: string) {
+        if (this.database === undefined)
+            return;
+
+        return this.database.disabledcommandguilds.findOne()
+            .where('guildId').eq(guildId)
+            .where('command').eq(command).exec();
+    }
+
+    async getDisabledCommands(guildId: string) {
+        if (this.database === undefined)
+            return [];
+
+        return this.database.disabledcommandguilds.find()
+            .where('guildId').eq(guildId).exec();
+    }
+
 }

@@ -10,6 +10,7 @@ import {
 import EnvironmentService from './environment.service';
 import ServiceInterface from '../service.interface';
 import CommandInterface from '../command.interface';
+import DatabaseService from './database.service';
 
 @Service()
 export default class DiscordService implements ServiceInterface{
@@ -21,7 +22,8 @@ export default class DiscordService implements ServiceInterface{
 
     private client: Client | undefined;
 
-    constructor(private env: EnvironmentService) {
+    constructor(private env: EnvironmentService,
+                private db: DatabaseService) {
         this.messages = new Subject<Message>();
         this.interactions = new Subject<Interaction>();
         this.chatCommands = new Subject<ChatInputCommandInteraction>();
@@ -95,5 +97,14 @@ export default class DiscordService implements ServiceInterface{
 
     getCommands(): Array<CommandInterface> {
         return this.commands;
+    }
+
+    async isCommandDisabled(command: string, guildId?: string | null): Promise<boolean> {
+        if (!guildId)
+            return false;
+
+        const disabledCommand = await this.db.getDisabledCommand(guildId, command);
+
+        return !!(disabledCommand || disabledCommand === undefined);
     }
 }
