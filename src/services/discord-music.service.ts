@@ -4,6 +4,8 @@ import { Service } from 'typedi';
 import { Player } from 'discord-music-player';
 import { VoiceBasedChannel } from 'discord.js';
 
+//
+
 @Service()
 export default class DiscordMusicService implements ServiceInterface {
     private player: Player;
@@ -19,12 +21,29 @@ export default class DiscordMusicService implements ServiceInterface {
         const guildQueue = this.player.getQueue(guildId);
         const queue = this.player.createQueue(guildId);
         await queue.join(voiceChannel);
+        console.log('Trying to play: ', url);
         try {
-            console.log('Trying to play: ', url);
-            await queue.play(url);
+            const song = await queue.play(url);
+            return song;
         } catch (e) {
-            console.error('Error Playing Music: ', e);
-            if (!guildQueue) queue.stop();
+            console.error(e);
+            return;
         }
+    }
+
+    stop(guildId: string) {
+        const guildQueue = this.player.getQueue(guildId);
+        if (!guildQueue) return;
+        guildQueue.stop();
+    }
+
+    skip(guildId: string) {
+        const guildQueue = this.player.getQueue(guildId);
+        if (!guildQueue) return;
+        guildQueue.skip();
+    }
+
+    getQueue(guildId: string) {
+        return this.player.getQueue(guildId);
     }
 }
