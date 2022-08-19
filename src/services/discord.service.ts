@@ -14,24 +14,25 @@ export default class DiscordService implements ServiceInterface {
 
     private commands: Array<CommandInterface>;
 
-    private client: Client | undefined;
+    private client: Client;
 
     constructor(private env: EnvironmentService, private db: DatabaseService) {
         this.messages = new Subject<Message>();
         this.interactions = new Subject<Interaction>();
         this.chatCommands = new Subject<ChatInputCommandInteraction>();
         this.commands = new Array<CommandInterface>();
-    }
 
-    async init() {
         const intents = new IntentsBitField();
         intents.add(
             IntentsBitField.Flags.Guilds,
             IntentsBitField.Flags.GuildMessages,
             IntentsBitField.Flags.MessageContent,
+            IntentsBitField.Flags.GuildVoiceStates,
         );
         this.client = new Client({ intents });
+    }
 
+    async init() {
         this.client.once('ready', () => {
             console.log('Ready!');
         });
@@ -60,6 +61,10 @@ export default class DiscordService implements ServiceInterface {
                 this.chatCommands.next(interaction);
             }
         });
+    }
+
+    getClient(): Client {
+        return this.client;
     }
 
     getMessages(): Subject<Message> {

@@ -12,6 +12,8 @@ import { ChatInputCommandInteraction } from 'discord.js';
 import DisableCommandCommand from './commands/disable-command.command';
 import DiceCommand from './commands/dice.command';
 import WolframAlphaCommand from './commands/wolfram-alpha.command';
+import RadioCommand from './commands/radio.command';
+import DiscordMusicService from './services/discord-music.service';
 
 const discordService = Container.get(DiscordService);
 
@@ -21,10 +23,12 @@ commands.push(Container.get(QuoteCommand));
 commands.push(Container.get(DisableCommandCommand));
 commands.push(Container.get(DiceCommand));
 commands.push(Container.get(WolframAlphaCommand));
+commands.push(Container.get(RadioCommand));
 
 const services = new Array<ServiceInterface>();
 services.push(Container.get(QuoteService));
 services.push(Container.get(DatabaseService));
+services.push(Container.get(DiscordMusicService));
 
 discordService
     .init()
