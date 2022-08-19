@@ -8,19 +8,19 @@ export default class EnvironmentService {
     }
 
     getBotSecret(): string {
-        const botSecret = process.env.BOT_SECRET
+        const botSecret = process.env.BOT_SECRET;
         if (botSecret !== undefined) {
             return botSecret;
         }
-        return "";
+        return '';
     }
 
     getClientId(): string {
-        const clientId = process.env.CLIENT_ID
+        const clientId = process.env.CLIENT_ID;
         if (clientId !== undefined) {
             return clientId;
         }
-        return "";
+        return '';
     }
 
     getGuildId(): string {
@@ -28,7 +28,7 @@ export default class EnvironmentService {
         if (guildId !== undefined) {
             return guildId;
         }
-        return "";
+        return '';
     }
 
     getGodId(): string {
@@ -36,7 +36,7 @@ export default class EnvironmentService {
         if (godId !== undefined) {
             return godId;
         }
-        return "";
+        return '';
     }
 
     getWolframAlphaToken(): string {
@@ -44,6 +44,6 @@ export default class EnvironmentService {
         if (wa) {
             return wa;
         }
-        return "";
+        return '';
     }
 }

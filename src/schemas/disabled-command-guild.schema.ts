@@ -3,7 +3,7 @@ import {
     RxCollection,
     RxDocument,
     RxJsonSchema,
-    toTypedRxJsonSchema
+    toTypedRxJsonSchema,
 } from 'rxdb';
 
 export const disabledCommandGuildSchemaLiteral = {
@@ -13,20 +13,20 @@ export const disabledCommandGuildSchemaLiteral = {
     type: 'object',
     properties: {
         id: {
-          type: 'string',
-            maxLength: 100
+            type: 'string',
+            maxLength: 100,
         },
         guildId: {
             type: 'string',
-            maxLength: 100
+            maxLength: 100,
         },
         command: {
             type: 'string',
-            maxLength: 100
-        }
+            maxLength: 100,
+        },
     },
     required: ['guildId', 'command'],
-    indexes: ['guildId', 'command']
+    indexes: ['guildId', 'command'],
 } as const;
 
 const schemaTyped = toTypedRxJsonSchema(disabledCommandGuildSchemaLiteral);

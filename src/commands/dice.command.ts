@@ -25,14 +25,13 @@ export default class DiceCommand implements CommandInterface {
         return new SlashCommandBuilder()
             .setName(this.command)
             .setDescription('Roll a dice')
-            .addSubcommand(subcommand =>
-            subcommand
-                .setName('sides')
-                .setDescription('Set a number of sides')
-                .addNumberOption(option =>
-                option
+            .addSubcommand((subcommand) =>
+                subcommand
                     .setName('sides')
-                    .setDescription('The number of sides')
-                    .setRequired(true)));
+                    .setDescription('Set a number of sides')
+                    .addNumberOption((option) =>
+                        option.setName('sides').setDescription('The number of sides').setRequired(true),
+                    ),
+            );
     }
 }

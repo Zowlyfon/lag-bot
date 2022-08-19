@@ -6,9 +6,7 @@ import { QuoteDocument } from '../schemas/quote.schema';
 
 @Service()
 export default class QuoteService implements ServiceInterface {
-
-    constructor(private dbService: DatabaseService) {
-    }
+    constructor(private dbService: DatabaseService) {}
 
     init(): void {
         return;
@@ -25,8 +23,7 @@ export default class QuoteService implements ServiceInterface {
 
     async getRandomQuote(userId: string, channelId: string, guildId: string): Promise<QuoteDocument | undefined> {
         const messages = await this.dbService.getQuotes(userId, channelId, guildId);
-        if (messages.length > 0)
-            return messages[Math.floor(Math.random() * messages.length)];
+        if (messages.length > 0) return messages[Math.floor(Math.random() * messages.length)];
         return;
     }
 }

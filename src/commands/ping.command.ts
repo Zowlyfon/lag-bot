@@ -1,6 +1,5 @@
-
 import { ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js';
-import {Service} from 'typedi';
+import { Service } from 'typedi';
 import CommandInterface from '../command.interface';
 
 @Service()

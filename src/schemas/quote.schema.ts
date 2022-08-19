@@ -3,7 +3,7 @@ import {
     RxCollection,
     RxDocument,
     RxJsonSchema,
-    toTypedRxJsonSchema
+    toTypedRxJsonSchema,
 } from 'rxdb';
 
 export const quoteSchemaLiteral = {
@@ -14,33 +14,33 @@ export const quoteSchemaLiteral = {
     properties: {
         userId: {
             type: 'string',
-            maxLength: 100
+            maxLength: 100,
         },
         channelId: {
             type: 'string',
-            maxLength: 100
+            maxLength: 100,
         },
         guildId: {
             type: 'string',
-            maxLength: 100
+            maxLength: 100,
         },
         messageId: {
             type: 'string',
-            maxLength: 100
+            maxLength: 100,
         },
         messageTimestamp: {
-            type: 'string'
+            type: 'string',
         },
         content: {
-            type: 'string'
+            type: 'string',
         },
         savedById: {
             type: 'string',
-            maxLength: 100
-        }
+            maxLength: 100,
+        },
     },
     required: ['userId', 'channelId', 'guildId', 'messageId', 'messageTimestamp', 'content', 'savedById'],
-    indexes: ['userId', 'channelId', 'guildId', 'savedById']
+    indexes: ['userId', 'channelId', 'guildId', 'savedById'],
 } as const;
 
 const schemaTyped = toTypedRxJsonSchema(quoteSchemaLiteral);

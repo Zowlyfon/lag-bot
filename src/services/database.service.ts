@@ -9,14 +9,14 @@ import { addPouchPlugin, getRxStoragePouch } from 'rxdb//plugins/pouchdb';
 import { DisabledCommandGuildCollection, disabledCommandGuildSchema } from '../schemas/disabled-command-guild.schema';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const leveldown = require('leveldown')
+const leveldown = require('leveldown');
 
 type LagDatabaseCollections = {
-    quotes: QuoteCollection,
-    disabledcommandguilds: DisabledCommandGuildCollection
-}
+    quotes: QuoteCollection;
+    disabledcommandguilds: DisabledCommandGuildCollection;
+};
 
-type LagDatabase = RxDatabase<LagDatabaseCollections>
+type LagDatabase = RxDatabase<LagDatabaseCollections>;
 
 @Service()
 export default class DatabaseService implements ServiceInterface {
@@ -26,30 +26,27 @@ export default class DatabaseService implements ServiceInterface {
         addRxPlugin(RxDBDevModePlugin);
         addRxPlugin(RxDBQueryBuilderPlugin);
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        addPouchPlugin(require('pouchdb-adapter-leveldb'))
+        addPouchPlugin(require('pouchdb-adapter-leveldb'));
         this.database = await createRxDatabase<LagDatabaseCollections>({
             name: 'database/lagdb',
-            storage: getRxStoragePouch(leveldown)
-        })
+            storage: getRxStoragePouch(leveldown),
+        });
 
-        if (this.database === undefined)
-            return;
+        if (this.database === undefined) return;
 
         await this.database.addCollections({
             quotes: {
-                schema: quoteSchema
+                schema: quoteSchema,
             },
             disabledcommandguilds: {
-                schema: disabledCommandGuildSchema
-            }
-        })
+                schema: disabledCommandGuildSchema,
+            },
+        });
     }
 
     async addQuote(message: Message, savedById: string): Promise<void> {
-        if (this.database === undefined)
-            return;
-        if (message.guildId === null)
-            return;
+        if (this.database === undefined) return;
+        if (message.guildId === null) return;
 
         await this.database.quotes.insert({
             userId: message.author.id,
@@ -58,38 +55,41 @@ export default class DatabaseService implements ServiceInterface {
             messageId: message.id,
             messageTimestamp: message.createdTimestamp.toString(10),
             content: message.content,
-            savedById
+            savedById,
         });
     }
 
     async getQuotes(userId: string, channelId: string, guildId: string): Promise<QuoteDocument[]> {
-        if (this.database === undefined)
-            return [];
+        if (this.database === undefined) return [];
 
-        return await this.database.quotes.find()
-            .where('userId').eq(userId)
-            .where('channelId').eq(channelId)
-            .where('guildId').eq(guildId)
+        return await this.database.quotes
+            .find()
+            .where('userId')
+            .eq(userId)
+            .where('channelId')
+            .eq(channelId)
+            .where('guildId')
+            .eq(guildId)
             .exec();
     }
 
     async addDisabledCommand(guildId: string, command: string) {
-        if (this.database === undefined)
-            return;
+        if (this.database === undefined) return;
 
         await this.database.disabledcommandguilds.insert({
             id: guildId + '|' + command,
             guildId,
-            command
+            command,
         });
     }
 
     async removeDisabledCommand(guildId: string, command: string) {
-        if (!this.database)
-            return;
+        if (!this.database) return;
 
-        const disabledCommand = await this.database.disabledcommandguilds.findOne()
-            .where('id').eq(guildId + '|' + command)
+        const disabledCommand = await this.database.disabledcommandguilds
+            .findOne()
+            .where('id')
+            .eq(guildId + '|' + command)
             .exec();
 
         if (disabledCommand) {
@@ -99,20 +99,20 @@ export default class DatabaseService implements ServiceInterface {
     }
 
     async getDisabledCommand(guildId: string, command: string) {
-        if (this.database === undefined)
-            return;
+        if (this.database === undefined) return;
 
-        return this.database.disabledcommandguilds.findOne()
-            .where('guildId').eq(guildId)
-            .where('command').eq(command).exec();
+        return this.database.disabledcommandguilds
+            .findOne()
+            .where('guildId')
+            .eq(guildId)
+            .where('command')
+            .eq(command)
+            .exec();
     }
 
     async getDisabledCommands(guildId: string) {
-        if (this.database === undefined)
-            return [];
+        if (this.database === undefined) return [];
 
-        return this.database.disabledcommandguilds.find()
-            .where('guildId').eq(guildId).exec();
+        return this.database.disabledcommandguilds.find().where('guildId').eq(guildId).exec();
     }
-
 }

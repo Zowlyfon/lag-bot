@@ -1,19 +1,13 @@
 import { Service } from 'typedi';
-import {Subject, filter} from 'rxjs';
-import {
-    Client,
-    IntentsBitField,
-    Message,
-    Interaction,
-    ChatInputCommandInteraction
-} from 'discord.js';
+import { Subject, filter } from 'rxjs';
+import { Client, IntentsBitField, Message, Interaction, ChatInputCommandInteraction } from 'discord.js';
 import EnvironmentService from './environment.service';
 import ServiceInterface from '../service.interface';
 import CommandInterface from '../command.interface';
 import DatabaseService from './database.service';
 
 @Service()
-export default class DiscordService implements ServiceInterface{
+export default class DiscordService implements ServiceInterface {
     private readonly messages: Subject<Message>;
     private readonly interactions: Subject<Interaction>;
     private readonly chatCommands: Subject<ChatInputCommandInteraction>;
@@ -22,8 +16,7 @@ export default class DiscordService implements ServiceInterface{
 
     private client: Client | undefined;
 
-    constructor(private env: EnvironmentService,
-                private db: DatabaseService) {
+    constructor(private env: EnvironmentService, private db: DatabaseService) {
         this.messages = new Subject<Message>();
         this.interactions = new Subject<Interaction>();
         this.chatCommands = new Subject<ChatInputCommandInteraction>();
@@ -32,18 +25,25 @@ export default class DiscordService implements ServiceInterface{
 
     async init() {
         const intents = new IntentsBitField();
-        intents.add(IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent);
-        this.client = new Client({intents});
+        intents.add(
+            IntentsBitField.Flags.Guilds,
+            IntentsBitField.Flags.GuildMessages,
+            IntentsBitField.Flags.MessageContent,
+        );
+        this.client = new Client({ intents });
 
         this.client.once('ready', () => {
             console.log('Ready!');
-        })
-
-        this.client.login(this.env.getBotSecret()).then(() => {
-            console.log('Client logged in');
-        }).catch((e) => {
-            console.error('Error logging in', e);
         });
+
+        this.client
+            .login(this.env.getBotSecret())
+            .then(() => {
+                console.log('Client logged in');
+            })
+            .catch((e) => {
+                console.error('Error logging in', e);
+            });
 
         this.client.on('interactionCreate', async (interaction: Interaction) => {
             console.log('interaction', interaction);
@@ -75,14 +75,15 @@ export default class DiscordService implements ServiceInterface{
     }
 
     onChatCommand(command: string) {
-        return this.chatCommands.pipe(filter((interaction: ChatInputCommandInteraction) => {
-            return interaction.commandName === command;
-        }));
+        return this.chatCommands.pipe(
+            filter((interaction: ChatInputCommandInteraction) => {
+                return interaction.commandName === command;
+            }),
+        );
     }
 
     async getUserById(userId: string) {
-        if (this.client === undefined)
-            return;
+        if (this.client === undefined) return;
 
         const user = await this.client.users.fetch(userId);
         if (user !== undefined) {
@@ -100,8 +101,7 @@ export default class DiscordService implements ServiceInterface{
     }
 
     async isCommandDisabled(command: string, guildId?: string | null): Promise<boolean> {
-        if (!guildId)
-            return false;
+        if (!guildId) return false;
 
         const disabledCommand = await this.db.getDisabledCommand(guildId, command);
 

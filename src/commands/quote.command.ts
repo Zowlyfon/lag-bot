@@ -8,7 +8,7 @@ import {
     italic,
     SlashCommandBuilder,
     SlashCommandSubcommandsOnlyBuilder,
-    userMention
+    userMention,
 } from 'discord.js';
 import { QuoteDocument } from '../schemas/quote.schema';
 
@@ -16,10 +16,11 @@ import { QuoteDocument } from '../schemas/quote.schema';
 export default class QuoteCommand implements CommandInterface {
     command = 'quote';
 
-    constructor(private discordService: DiscordService,
-                private quoteService: QuoteService,
-                private env: EnvironmentService) {
-    }
+    constructor(
+        private discordService: DiscordService,
+        private quoteService: QuoteService,
+        private env: EnvironmentService,
+    ) {}
 
     async init(): Promise<void> {
         return;
@@ -31,42 +32,38 @@ export default class QuoteCommand implements CommandInterface {
             console.log('quote add ' + user.username);
 
             if (interaction.user.id === user.id && user.id !== this.env.getGodId()) {
-                await interaction.reply({content: 'You can\'t quote yourself, cheeky', ephemeral: true});
+                await interaction.reply({ content: "You can't quote yourself, cheeky", ephemeral: true });
                 return;
             }
 
             if (user.bot) {
-                await interaction.reply({content: 'You can\'t quote bots', ephemeral: true});
+                await interaction.reply({ content: "You can't quote bots", ephemeral: true });
             }
 
-            if (!interaction.channel)
-                return;
+            if (!interaction.channel) return;
 
-            const channelMessages = await interaction.channel.messages.fetch({limit: 100})
+            const channelMessages = await interaction.channel.messages.fetch({ limit: 100 });
 
-            if (!channelMessages)
-                return;
+            if (!channelMessages) return;
 
-            const messages = channelMessages.filter(m => m.author.id === user.id);
+            const messages = channelMessages.filter((m) => m.author.id === user.id);
 
-            if (!messages)
-                return;
+            if (!messages) return;
 
             const message = messages.sort((a, b) => b.createdTimestamp - a.createdTimestamp).first();
 
             if (message !== undefined) {
                 await this.quoteService.addQuote(message, interaction.user.id);
-                await interaction.reply({content: message?.content, ephemeral: true});
+                await interaction.reply({ content: message?.content, ephemeral: true });
             } else {
-                await interaction.reply({content: 'No recent message found', ephemeral: true});
+                await interaction.reply({ content: 'No recent message found', ephemeral: true });
             }
             return;
         }
 
         if (user && interaction.options.getSubcommand() === 'last') {
             console.log('quote last ' + user.username);
-            if (!interaction.guildId)
-                return;
+            if (!interaction.guildId) return;
 
             const message = await this.quoteService.getLastQuote(user.id, interaction.channelId, interaction.guildId);
             await this.sendQuote(interaction, message);
@@ -74,13 +71,11 @@ export default class QuoteCommand implements CommandInterface {
 
         if (user && interaction.options.getSubcommand() === 'rand') {
             console.log('quote rand' + user.username);
-            if (!interaction.guildId)
-                return;
+            if (!interaction.guildId) return;
 
             const message = await this.quoteService.getRandomQuote(user.id, interaction.channelId, interaction.guildId);
             await this.sendQuote(interaction, message);
         }
-
     }
 
     async sendQuote(interaction: ChatInputCommandInteraction, message?: QuoteDocument) {
@@ -88,10 +83,9 @@ export default class QuoteCommand implements CommandInterface {
             const quotedUser = await this.discordService.getUserById(message.userId);
             if (quotedUser !== undefined)
                 await interaction.reply(italic('"' + message.content + '"') + ' - ' + userMention(quotedUser.id));
-            else
-                await interaction.reply('"' + message.content + '"');
+            else await interaction.reply('"' + message.content + '"');
         } else {
-            await interaction.reply({content: 'No quotes found', ephemeral: true})
+            await interaction.reply({ content: 'No quotes found', ephemeral: true });
         }
     }
 
@@ -99,38 +93,29 @@ export default class QuoteCommand implements CommandInterface {
         return new SlashCommandBuilder()
             .setName(this.command)
             .setDescription('Save and recall messages')
-            .addSubcommand(subcommand =>
-            subcommand
-                .setName('add')
-                .setDescription('Save a message sent by a user')
-                .addUserOption(option =>
-                option
-                    .setName('user')
-                    .setDescription('The user to quote')
-                    .setRequired(true)
-                )
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('add')
+                    .setDescription('Save a message sent by a user')
+                    .addUserOption((option) =>
+                        option.setName('user').setDescription('The user to quote').setRequired(true),
+                    ),
             )
-            .addSubcommand(subcommand =>
-            subcommand
-                .setName('last')
-                .setDescription('Retrieve the last quote from a user')
-                .addUserOption(option =>
-                option
-                    .setName('user')
-                    .setDescription('The user to fetch')
-                    .setRequired(true)
-                )
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('last')
+                    .setDescription('Retrieve the last quote from a user')
+                    .addUserOption((option) =>
+                        option.setName('user').setDescription('The user to fetch').setRequired(true),
+                    ),
             )
-            .addSubcommand(subcommand =>
-            subcommand
-                .setName('rand')
-                .setDescription('Retrieve a random quote from a user')
-                .addUserOption(option =>
-                option
-                    .setName('user')
-                    .setDescription('The user to fetch')
-                    .setRequired(true)
-                )
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('rand')
+                    .setDescription('Retrieve a random quote from a user')
+                    .addUserOption((option) =>
+                        option.setName('user').setDescription('The user to fetch').setRequired(true),
+                    ),
             );
     }
 }
