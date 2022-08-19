@@ -10,7 +10,9 @@
     "run": "npm run build:typescript && npm run run:node",
     "lint": "eslint src/**/*.ts",
     "lint-fix": "eslint src/**/*.ts --fix",
-    "deploy": "npm run build:typescript && node build/scripts/deploy-commands.js"
+    "deploy": "npm run build:typescript && node build/scripts/deploy-commands.js",
+    "prettier": "prettier 'src/**/*.ts'",
+    "prettier:fix": "prettier --write 'src/**/*.ts'"
   },
   "author": "",
   "license": "ISC",
@@ -18,6 +20,8 @@
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",
     "eslint": "^8.22.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
     "nodemon": "^2.0.19",
     "prettier": "^2.7.1",
     "ts-node": "^10.9.1",
