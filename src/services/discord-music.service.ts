@@ -20,6 +20,7 @@ export default class DiscordMusicService implements ServiceInterface {
         const queue = this.player.createQueue(guildId);
         await queue.join(voiceChannel);
         try {
+            console.log('Trying to play: ', url);
             await queue.play(url);
         } catch (e) {
             console.error('Error Playing Music: ', e);

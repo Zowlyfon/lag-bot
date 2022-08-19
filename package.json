@@ -37,7 +37,6 @@
     "dotenv": "^16.0.1",
     "leveldown": "^6.1.1",
     "node": "^16.16.0",
-    "node-opus": "^0.3.3",
     "pouchdb-adapter-leveldb": "^7.3.0",
     "reflect-metadata": "^0.1.13",
     "rxdb": "^12.7.16",
