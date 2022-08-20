@@ -7,12 +7,13 @@ import {
     SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js';
 import DiscordMusicService from '../services/discord-music.service';
+import EnvironmentService from '../services/environment.service';
 
 @Service()
 export default class RadioCommand implements CommandInterface {
     command = 'radio';
 
-    constructor(private discordMusicService: DiscordMusicService) {}
+    constructor(private discordMusicService: DiscordMusicService, private env: EnvironmentService) {}
 
     async init() {
         return;
@@ -35,7 +36,37 @@ export default class RadioCommand implements CommandInterface {
             if (!voiceChannel) return;
 
             await interaction.deferReply();
-            const song = await this.discordMusicService.addToQueue(url, interaction.guildId, voiceChannel);
+            const song = await this.discordMusicService.getSong(url, interaction.guildId);
+
+            if (!song) {
+                await interaction.editReply('Invalid URL');
+                return;
+            }
+
+            const songPlaying = await this.discordMusicService.addToQueue(song, interaction.guildId, voiceChannel);
+
+            if (!songPlaying) {
+                await interaction.editReply('Song failed to play');
+                return;
+            }
+
+            await interaction.editReply('Playing song: ' + song.name);
+        }
+
+        if (interaction.options.getSubcommand() === 'search') {
+            console.log('radio search');
+            const search = interaction.options.getString('search');
+
+            if (!search) return;
+
+            const member = interaction.member as GuildMember;
+
+            const voiceChannel = member.voice.channel;
+
+            if (!voiceChannel) return;
+
+            await interaction.deferReply();
+            const song = await this.discordMusicService.addToQueue(search, interaction.guildId, voiceChannel);
 
             if (!song) {
                 await interaction.editReply('Song failed to play');
@@ -48,13 +79,13 @@ export default class RadioCommand implements CommandInterface {
         if (interaction.options.getSubcommand() === 'stop') {
             console.log('radio stop');
             this.discordMusicService.stop(interaction.guildId);
-            interaction.reply('Bye Bye');
+            await interaction.reply('Bye Bye');
         }
 
         if (interaction.options.getSubcommand() === 'skip') {
             console.log('radio skip');
             this.discordMusicService.skip(interaction.guildId);
-            interaction.reply('Skipping song...');
+            await interaction.reply('Skipping song...');
         }
 
         if (interaction.options.getSubcommand() === 'queue') {
@@ -62,7 +93,7 @@ export default class RadioCommand implements CommandInterface {
             const queue = this.discordMusicService.getQueue(interaction.guildId);
 
             if (!queue) {
-                interaction.reply('There is no queue');
+                await interaction.reply('There is no queue');
                 return;
             }
 
@@ -72,7 +103,41 @@ export default class RadioCommand implements CommandInterface {
                 songs = songs + s.name + '\n';
             });
 
-            interaction.reply(songs);
+            await interaction.reply(songs);
+        }
+
+        if (interaction.options.getSubcommand() === 'set-volume') {
+            console.log('radio set-volume');
+
+            const volume = interaction.options.getNumber('volume');
+
+            if (!volume) return;
+
+            let override = false;
+
+            if (interaction.user.id === this.env.getGodId()) {
+                override = true;
+            }
+
+            if (this.discordMusicService.setVolume(interaction.guildId, volume, override)) {
+                await interaction.reply('Volume set to: ' + volume);
+                return;
+            }
+
+            await interaction.reply('Failed to set volume');
+        }
+
+        if (interaction.options.getSubcommand() === 'get-volume') {
+            console.log('radio get-volume');
+
+            const volume = this.discordMusicService.getVolume(interaction.guildId);
+
+            if (!volume) {
+                await interaction.reply('Radio is turned off');
+                return;
+            }
+
+            await interaction.reply('Volume is set to: ' + volume);
         }
     }
 
@@ -85,6 +150,25 @@ export default class RadioCommand implements CommandInterface {
                     .setName('play')
                     .setDescription('Choose a song to play')
                     .addStringOption((option) => option.setName('url').setDescription('Youtube url').setRequired(true)),
+            )
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('search')
+                    .setDescription('Search for a song to play')
+                    .addStringOption((option) =>
+                        option.setName('search').setDescription('Search terms').setRequired(true),
+                    ),
+            )
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('set-volume')
+                    .setDescription('Set the music volume')
+                    .addNumberOption((option) =>
+                        option.setName('volume').setDescription('Volume to set').setRequired(true),
+                    ),
+            )
+            .addSubcommand((subcommand) =>
+                subcommand.setName('get-volume').setDescription('Get the current music volume'),
             )
             .addSubcommand((subcommand) => subcommand.setName('stop').setDescription('Stop playing music'))
             .addSubcommand((subcommand) => subcommand.setName('skip').setDescription('Skip the current song'))

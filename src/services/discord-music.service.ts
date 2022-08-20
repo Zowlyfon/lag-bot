@@ -1,7 +1,7 @@
 import ServiceInterface from '../service.interface';
 import DiscordService from './discord.service';
 import { Service } from 'typedi';
-import { Player } from 'discord-music-player';
+import { Player, Queue, Song, Utils } from 'discord-music-player';
 import { VoiceBasedChannel } from 'discord.js';
 
 //
@@ -17,14 +17,24 @@ export default class DiscordMusicService implements ServiceInterface {
         return;
     }
 
-    async addToQueue(url: string, guildId: string, voiceChannel: VoiceBasedChannel) {
+    async getSong(url: string, guildId: string) {
         const guildQueue = this.player.getQueue(guildId);
+        let queue: Queue;
+        if (!guildQueue) {
+            queue = this.player.createQueue(guildId);
+        } else {
+            queue = guildQueue;
+        }
+
+        return Utils.link(url, {}, queue);
+    }
+
+    async addToQueue(songQuery: string | Song, guildId: string, voiceChannel: VoiceBasedChannel) {
         const queue = this.player.createQueue(guildId);
         await queue.join(voiceChannel);
-        console.log('Trying to play: ', url);
+        console.log('Trying to play: ', songQuery);
         try {
-            const song = await queue.play(url);
-            return song;
+            return await queue.play(songQuery);
         } catch (e) {
             console.error(e);
             return;
@@ -45,5 +55,20 @@ export default class DiscordMusicService implements ServiceInterface {
 
     getQueue(guildId: string) {
         return this.player.getQueue(guildId);
+    }
+
+    setVolume(guildId: string, volume: number, override: boolean) {
+        const guildQueue = this.player.getQueue(guildId);
+        if (!guildQueue) return;
+
+        if (!override) volume = Math.max(Math.min(volume, 200), 0);
+
+        return guildQueue.setVolume(volume);
+    }
+
+    getVolume(guildId: string) {
+        const guildQueue = this.player.getQueue(guildId);
+        if (!guildQueue) return;
+        return guildQueue.volume;
     }
 }
