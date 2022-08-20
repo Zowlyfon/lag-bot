@@ -76,7 +76,7 @@ export default class WolframAlphaCommand implements CommandInterface {
             const queryParams = new URLSearchParams({ i: query });
 
             const embed = new EmbedBuilder()
-                .setTitle('Wolfram Alpha Result')
+                .setTitle(query)
                 .setURL('https://www.wolframalpha.com/input?' + queryParams.toString())
                 .setDescription(answerText)
                 .setTimestamp();
