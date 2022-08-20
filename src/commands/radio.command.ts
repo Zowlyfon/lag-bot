@@ -139,6 +139,23 @@ export default class RadioCommand implements CommandInterface {
 
             await interaction.reply('Volume is set to: ' + volume);
         }
+
+        if (interaction.options.getSubcommand() === 'repeat') {
+            console.log('radio repeat');
+
+            const repeat = interaction.options.getBoolean('repeat');
+
+            if (repeat === null) return;
+
+            const result = this.discordMusicService.repeat(interaction.guildId, repeat);
+
+            if (!result) {
+                await interaction.reply('No songs playing');
+                return;
+            }
+
+            await interaction.reply('Repeat set to ' + (repeat ? 'On' : 'Off'));
+        }
     }
 
     slashCommandBuilder(): SlashCommandSubcommandsOnlyBuilder | SlashCommandBuilder {
@@ -172,6 +189,12 @@ export default class RadioCommand implements CommandInterface {
             )
             .addSubcommand((subcommand) => subcommand.setName('stop').setDescription('Stop playing music'))
             .addSubcommand((subcommand) => subcommand.setName('skip').setDescription('Skip the current song'))
-            .addSubcommand((subcommand) => subcommand.setName('queue').setDescription('Get the music queue'));
+            .addSubcommand((subcommand) => subcommand.setName('queue').setDescription('Get the music queue'))
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('repeat')
+                    .setName('Set the current song to repeat')
+                    .addBooleanOption((option) => option.setName('on').setDescription('Repeat on or off')),
+            );
     }
 }
