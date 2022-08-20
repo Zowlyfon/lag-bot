@@ -193,7 +193,7 @@ export default class RadioCommand implements CommandInterface {
             .addSubcommand((subcommand) =>
                 subcommand
                     .setName('repeat')
-                    .setName('Set the current song to repeat')
+                    .setDescription('Set the current song to repeat')
                     .addBooleanOption((option) => option.setName('on').setDescription('Repeat on or off')),
             );
     }
