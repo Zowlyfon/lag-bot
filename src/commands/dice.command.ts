@@ -24,13 +24,14 @@ export default class DiceCommand implements CommandInterface {
             }
         }
 
-        let print_rolls = [];
+        const print_rolls = [];
         let total = 0;
         for (let i = 0; i < dice; i++) {
             const r = Math.floor(Math.random() * sides) + 1;
             total += r;
 
-            if (i < 19) { // only show the first 20 rolls to the user
+            if (i < 19) {
+                // only show the first 20 rolls to the user
                 print_rolls.push(r);
             }
         }
@@ -38,7 +39,11 @@ export default class DiceCommand implements CommandInterface {
         if (dice == 1) {
             await interaction.reply(`You rolled ${total} on a ${sides} sided die!`);
         } else {
-            await interaction.reply(`You rolled ${dice} dice with ${sides} sides! Results: ${print_rolls.join(", ")} ...\nTotal sum of all rolls: ${total}`);
+            await interaction.reply(
+                `You rolled ${dice} dice with ${sides} sides! Results: ${print_rolls.join(
+                    ', ',
+                )} ...\nTotal sum of all rolls: ${total}`,
+            );
         }
     }
 
@@ -51,10 +56,10 @@ export default class DiceCommand implements CommandInterface {
                     .setName('roll')
                     .setDescription('Rolls one or more dice with a user-defined number of sides.')
                     .addNumberOption((option) =>
-                        option.setName('sides').setDescription('The number of sides').setRequired(true)
+                        option.setName('sides').setDescription('The number of sides').setRequired(true),
                     )
                     .addNumberOption((option) =>
-                        option.setName('dice').setDescription('The number of dice').setRequired(false)
+                        option.setName('dice').setDescription('The number of dice').setRequired(false),
                     ),
             );
     }
