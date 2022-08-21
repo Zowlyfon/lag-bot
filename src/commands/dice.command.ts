@@ -12,30 +12,33 @@ export default class DiceCommand implements CommandInterface {
     async runCommand(interaction: ChatInputCommandInteraction) {
         let sides = 6;
         let dice = 1;
-        let diceMax = 100; // We probably don't want someone rolling a thousand dice.
 
-        if (interaction.options.getSubcommand() === 'sides') {
+        if (interaction.options.getSubcommand() === 'roll') {
             const sidesOption = interaction.options.getNumber('sides');
             if (sidesOption) {
                 sides = Math.min(sidesOption);
             }
             const diceOption = interaction.options.getNumber('dice');
             if (diceOption) {
-                dice = Math.min(Math.max(diceOption, 1), diceMax); // clamp between 1 and diceMax
+                dice = Math.min(Math.max(diceOption, 1), 1000000);
             }
         }
 
-        let rolls = [];
+        let print_rolls = [];
+        let total = 0;
         for (let i = 0; i < dice; i++) {
-            rolls.push(Math.floor(Math.random() * sides) + 1);
+            const r = Math.floor(Math.random() * sides) + 1;
+            total += r;
+
+            if (i < 19) { // only show the first 20 rolls to the user
+                print_rolls.push(r);
+            }
         }
 
-        const total = rolls.reduce((rollsSum, r) => rollsSum + r, 0);
-
         if (dice == 1) {
-            await interaction.reply(`You rolled ${rolls[0]} on a ${sides} sided die!`);
+            await interaction.reply(`You rolled ${total} on a ${sides} sided die!`);
         } else {
-            await interaction.reply(`You rolled ${dice} dice with ${sides} sides! Results: ${rolls.join(", ")}\nTotal of all roles: ${total}`);
+            await interaction.reply(`You rolled ${dice} dice with ${sides} sides! Results: ${print_rolls.join(", ")} ...\nTotal sum of all rolls: ${total}`);
         }
     }
 
