@@ -11,10 +11,14 @@ import {
     userMention,
 } from 'discord.js';
 import { QuoteDocument } from '../schemas/quote.schema';
+import { SubCommand } from '../sub-command.type';
+import { Subject } from 'rxjs';
 
 @Service()
 export default class QuoteCommand implements CommandInterface {
     command = 'quote';
+    subCommands = new Array<SubCommand>();
+    subCommandSubject = new Subject<ChatInputCommandInteraction>();
 
     constructor(
         private discordService: DiscordService,
@@ -23,59 +27,77 @@ export default class QuoteCommand implements CommandInterface {
     ) {}
 
     async init(): Promise<void> {
-        return;
+        this.subCommands.push(
+            {
+                command: 'add',
+                runCommand: async (interaction) => {
+                    const user = interaction.options.getUser('user');
+                    if (!user) return;
+                    console.log('quote add ' + user.username);
+
+                    if (interaction.user.id === user.id && user.id !== this.env.getGodId()) {
+                        await interaction.reply({ content: "You can't quote yourself, cheeky", ephemeral: true });
+                        return;
+                    }
+
+                    if (user.bot) {
+                        await interaction.reply({ content: "You can't quote bots", ephemeral: true });
+                    }
+
+                    if (!interaction.channel) return;
+
+                    const channelMessages = await interaction.channel.messages.fetch({ limit: 100 });
+
+                    if (!channelMessages) return;
+
+                    const messages = channelMessages.filter((m) => m.author.id === user.id);
+
+                    if (!messages) return;
+
+                    const message = messages.sort((a, b) => b.createdTimestamp - a.createdTimestamp).first();
+
+                    if (message !== undefined) {
+                        await this.quoteService.addQuote(message, interaction.user.id);
+                        await interaction.reply({ content: message?.content, ephemeral: true });
+                    } else {
+                        await interaction.reply({ content: 'No recent message found', ephemeral: true });
+                    }
+                    return;
+                },
+            },
+            {
+                command: 'rand',
+                runCommand: async (interaction) => {
+                    const user = interaction.options.getUser('user');
+                    if (!user) return;
+
+                    const message = await this.quoteService.getRandomQuote(
+                        user.id,
+                        interaction.channelId,
+                        interaction.guildId as string,
+                    );
+                    await this.sendQuote(interaction, message);
+                },
+            },
+            {
+                command: 'last',
+                runCommand: async (interaction) => {
+                    const user = interaction.options.getUser('user');
+                    if (!user) return;
+
+                    const message = await this.quoteService.getLastQuote(
+                        user.id,
+                        interaction.channelId,
+                        interaction.guildId as string,
+                    );
+                    await this.sendQuote(interaction, message);
+                },
+            },
+        );
     }
 
     async runCommand(interaction: ChatInputCommandInteraction) {
-        const user = interaction.options.getUser('user');
-        if (user && interaction.options.getSubcommand() === 'add') {
-            console.log('quote add ' + user.username);
-
-            if (interaction.user.id === user.id && user.id !== this.env.getGodId()) {
-                await interaction.reply({ content: "You can't quote yourself, cheeky", ephemeral: true });
-                return;
-            }
-
-            if (user.bot) {
-                await interaction.reply({ content: "You can't quote bots", ephemeral: true });
-            }
-
-            if (!interaction.channel) return;
-
-            const channelMessages = await interaction.channel.messages.fetch({ limit: 100 });
-
-            if (!channelMessages) return;
-
-            const messages = channelMessages.filter((m) => m.author.id === user.id);
-
-            if (!messages) return;
-
-            const message = messages.sort((a, b) => b.createdTimestamp - a.createdTimestamp).first();
-
-            if (message !== undefined) {
-                await this.quoteService.addQuote(message, interaction.user.id);
-                await interaction.reply({ content: message?.content, ephemeral: true });
-            } else {
-                await interaction.reply({ content: 'No recent message found', ephemeral: true });
-            }
-            return;
-        }
-
-        if (user && interaction.options.getSubcommand() === 'last') {
-            console.log('quote last ' + user.username);
-            if (!interaction.guildId) return;
-
-            const message = await this.quoteService.getLastQuote(user.id, interaction.channelId, interaction.guildId);
-            await this.sendQuote(interaction, message);
-        }
-
-        if (user && interaction.options.getSubcommand() === 'rand') {
-            console.log('quote rand' + user.username);
-            if (!interaction.guildId) return;
-
-            const message = await this.quoteService.getRandomQuote(user.id, interaction.channelId, interaction.guildId);
-            await this.sendQuote(interaction, message);
-        }
+        return;
     }
 
     async sendQuote(interaction: ChatInputCommandInteraction, message?: QuoteDocument) {

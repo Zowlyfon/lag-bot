@@ -14,6 +14,7 @@ import DiceCommand from './commands/dice.command';
 import WolframAlphaCommand from './commands/wolfram-alpha.command';
 import RadioCommand from './commands/radio.command';
 import DiscordMusicService from './services/discord-music.service';
+import { filter } from 'rxjs';
 
 const discordService = Container.get(DiscordService);
 
@@ -39,6 +40,20 @@ discordService
 
         commands.forEach(async (command: CommandInterface) => {
             await command.init();
+
+            command.subCommands.forEach((subCommand) => {
+                command.subCommandSubject
+                    .pipe(
+                        filter((interaction) => {
+                            return interaction.options.getSubcommand() === subCommand.command;
+                        }),
+                    )
+                    .subscribe(async (interaction) => {
+                        console.log(`Command: ${command.command} ${subCommand.command}`);
+                        await subCommand.runCommand(interaction);
+                    });
+            });
+
             discordService
                 .onChatCommand(command.command)
                 .subscribe(async (interaction: ChatInputCommandInteraction) => {
@@ -56,6 +71,8 @@ discordService
 
                     console.log('Running command', command.command);
                     await command.runCommand(interaction);
+
+                    command.subCommandSubject.next(interaction);
                 });
         });
 

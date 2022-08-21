@@ -8,15 +8,56 @@ import {
     SlashCommandBuilder,
     SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js';
+import { SubCommand } from '../sub-command.type';
+import { Subject } from 'rxjs';
 
 @Service()
 export default class DisableCommandCommand implements CommandInterface {
     command = 'disable-command';
+    subCommands = new Array<SubCommand>();
+    subCommandSubject = new Subject<ChatInputCommandInteraction>();
 
     constructor(private discordService: DiscordService, private db: DatabaseService) {}
 
     async init(): Promise<void> {
-        return;
+        this.subCommands.push(
+            {
+                command: 'disable-guild',
+                runCommand: async (interaction) => {
+                    const command = interaction.options.getString('command');
+
+                    if (!command) return;
+
+                    const commands = this.discordService.getCommands().map((c) => c.command);
+
+                    if (commands.find((c) => command === c) === undefined) {
+                        await interaction.reply({ content: 'Command does not exist', ephemeral: true });
+                        return;
+                    }
+
+                    await this.db.addDisabledCommand(interaction.guildId as string, command);
+                    await interaction.reply('Command: ' + command + ' has been disabled');
+                },
+            },
+            {
+                command: 'enable-guild',
+                runCommand: async (interaction) => {
+                    const command = interaction.options.getString('command');
+
+                    if (!command) return;
+
+                    const result = await this.db.removeDisabledCommand(interaction.guildId as string, command);
+
+                    if (result) {
+                        await interaction.reply({ content: 'Enabled command', ephemeral: true });
+                        return;
+                    } else {
+                        await interaction.reply({ content: 'Command could not be enabled', ephemeral: true });
+                        return;
+                    }
+                },
+            },
+        );
     }
 
     async runCommand(interaction: ChatInputCommandInteraction) {
@@ -29,36 +70,6 @@ export default class DisableCommandCommand implements CommandInterface {
         ) {
             await interaction.reply({ content: 'You do not have permissions to run this command', ephemeral: true });
             return;
-        }
-
-        const command = interaction.options.getString('command');
-
-        if (!command) return;
-
-        const subcommand = interaction.options.getSubcommand();
-
-        if (subcommand === 'disable-guild') {
-            const commands = this.discordService.getCommands().map((c) => c.command);
-
-            if (commands.find((c) => command === c) === undefined) {
-                await interaction.reply({ content: 'Command does not exist', ephemeral: true });
-                return;
-            }
-
-            await this.db.addDisabledCommand(interaction.guildId, command);
-            await interaction.reply('Command: ' + command + ' has been disabled');
-        }
-
-        if (subcommand === 'enable-guild') {
-            const result = await this.db.removeDisabledCommand(interaction.guildId, command);
-
-            if (result) {
-                await interaction.reply({ content: 'Enabled command', ephemeral: true });
-                return;
-            } else {
-                await interaction.reply({ content: 'Command could not be enabled', ephemeral: true });
-                return;
-            }
         }
     }
 
