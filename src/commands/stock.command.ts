@@ -41,13 +41,18 @@ export default class StockCommand implements CommandInterface {
                 const quote = await yahooFinance.quote(ticker as string);
 
                 if (!quote) {
-                    await interaction.reply({ content: `Invalid stock ticker specified: ${ticker}`, ephemeral: true });
+                    await interaction.deleteReply();
+                    await interaction.followUp({
+                        content: `Invalid stock ticker specified: ${ticker}`,
+                        ephemeral: true,
+                    });
                     return;
                 }
 
                 const quoteType = quote['quoteType'];
                 if (quoteType !== 'EQUITY' && quoteType !== 'ETF' && quoteType !== 'INDEX') {
-                    await interaction.reply({
+                    await interaction.deleteReply();
+                    await interaction.followUp({
                         content: `Sorry, stock type "${quoteType}" is not supported at this time.`,
                         ephemeral: true,
                     });
