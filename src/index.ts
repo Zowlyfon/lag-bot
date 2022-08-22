@@ -14,6 +14,7 @@ import DiceCommand from './commands/dice.command';
 import WolframAlphaCommand from './commands/wolfram-alpha.command';
 import RadioCommand from './commands/radio.command';
 import DiscordMusicService from './services/discord-music.service';
+import StockCommand from './commands/stock.command';
 import { filter } from 'rxjs';
 
 const discordService = Container.get(DiscordService);
@@ -25,6 +26,7 @@ commands.push(Container.get(DisableCommandCommand));
 commands.push(Container.get(DiceCommand));
 commands.push(Container.get(WolframAlphaCommand));
 commands.push(Container.get(RadioCommand));
+commands.push(Container.get(StockCommand));
 
 const services = new Array<ServiceInterface>();
 services.push(Container.get(QuoteService));
