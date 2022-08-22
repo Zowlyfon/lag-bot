@@ -1,6 +1,15 @@
 import { Service } from 'typedi';
 import { Subject, filter } from 'rxjs';
-import { Client, IntentsBitField, Message, Interaction, ChatInputCommandInteraction } from 'discord.js';
+import {
+    Client,
+    IntentsBitField,
+    Message,
+    Interaction,
+    ChatInputCommandInteraction,
+    ButtonInteraction,
+    SelectMenuInteraction,
+    ModalSubmitInteraction,
+} from 'discord.js';
 import EnvironmentService from './environment.service';
 import ServiceInterface from '../service.interface';
 import CommandInterface from '../command.interface';
@@ -11,15 +20,21 @@ export default class DiscordService implements ServiceInterface {
     private readonly messages: Subject<Message>;
     private readonly interactions: Subject<Interaction>;
     private readonly chatCommands: Subject<ChatInputCommandInteraction>;
+    private readonly buttonInteraction: Subject<ButtonInteraction>;
+    private readonly selectInteraction: Subject<SelectMenuInteraction>;
+    private readonly modalInteraction: Subject<ModalSubmitInteraction>;
 
     private commands: Array<CommandInterface>;
 
-    private client: Client;
+    private readonly client: Client;
 
     constructor(private env: EnvironmentService, private db: DatabaseService) {
         this.messages = new Subject<Message>();
         this.interactions = new Subject<Interaction>();
         this.chatCommands = new Subject<ChatInputCommandInteraction>();
+        this.buttonInteraction = new Subject<ButtonInteraction>();
+        this.selectInteraction = new Subject<SelectMenuInteraction>();
+        this.modalInteraction = new Subject<ModalSubmitInteraction>();
         this.commands = new Array<CommandInterface>();
 
         const intents = new IntentsBitField();
@@ -58,6 +73,18 @@ export default class DiscordService implements ServiceInterface {
             if (interaction.isChatInputCommand()) {
                 this.chatCommands.next(interaction);
             }
+
+            if (interaction.isButton()) {
+                this.buttonInteraction.next(interaction);
+            }
+
+            if (interaction.isSelectMenu()) {
+                this.selectInteraction.next(interaction);
+            }
+
+            if (interaction.isModalSubmit()) {
+                this.modalInteraction.next(interaction);
+            }
         });
     }
 
@@ -75,6 +102,18 @@ export default class DiscordService implements ServiceInterface {
 
     getChatCommands(): Subject<ChatInputCommandInteraction> {
         return this.chatCommands;
+    }
+
+    getButtonInteractions(): Subject<ButtonInteraction> {
+        return this.buttonInteraction;
+    }
+
+    getSelectInteractions(): Subject<SelectMenuInteraction> {
+        return this.selectInteraction;
+    }
+
+    getModalInteractions(): Subject<ModalSubmitInteraction> {
+        return this.modalInteraction;
     }
 
     onChatCommand(command: string) {

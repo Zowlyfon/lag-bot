@@ -13,11 +13,13 @@ import {
 import { QuoteDocument } from '../schemas/quote.schema';
 import { SubCommand } from '../sub-command.type';
 import { Subject } from 'rxjs';
+import { InteractionHandler } from '../interaction-handler.type';
 
 @Service()
 export default class QuoteCommand implements CommandInterface {
     command = 'quote';
     subCommands = new Array<SubCommand>();
+    interactionHandlers = new Array<InteractionHandler>();
     subCommandSubject = new Subject<ChatInputCommandInteraction>();
 
     constructor(

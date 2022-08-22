@@ -1,13 +1,18 @@
 import CommandInterface from '../command.interface';
 import { Service } from 'typedi';
 import {
+    ActionRowBuilder,
     ChatInputCommandInteraction,
+    Colors,
     EmbedBuilder,
     GuildMember,
+    inlineCode,
     SelectMenuBuilder,
+    SelectMenuInteraction,
     SelectMenuOptionBuilder,
     SlashCommandBuilder,
     SlashCommandSubcommandsOnlyBuilder,
+    User,
     VoiceBasedChannel,
 } from 'discord.js';
 import DiscordMusicService from '../services/discord-music.service';
@@ -15,14 +20,22 @@ import EnvironmentService from '../services/environment.service';
 import { Song } from 'discord-music-player';
 import { SubCommand } from '../sub-command.type';
 import { Subject } from 'rxjs';
+import DiscordService from '../services/discord.service';
+import { InteractionHandler } from '../interaction-handler.type';
+import { InteractionType } from '../interaction-type.enum';
 
 @Service()
 export default class RadioCommand implements CommandInterface {
     command = 'radio';
     subCommands = new Array<SubCommand>();
+    interactionHandlers = new Array<InteractionHandler>();
     subCommandSubject = new Subject<ChatInputCommandInteraction>();
 
-    constructor(private discordMusicService: DiscordMusicService, private env: EnvironmentService) {}
+    constructor(
+        private discordMusicService: DiscordMusicService,
+        private env: EnvironmentService,
+        private discordService: DiscordService,
+    ) {}
 
     async init() {
         this.subCommands.push(
@@ -91,19 +104,15 @@ export default class RadioCommand implements CommandInterface {
                         return;
                     }
 
-                    /*
-                    let songs = 'Queue: ';
-                    console.log('Queue', queue);
-                    queue.songs.forEach((s) => {
-                        songs = songs + s.name + '\n';
-                    });
-                     */
-
                     const songs = queue.songs.map((s) => {
-                        return { name: s.author, value: s.name };
+                        return [
+                            { name: 'Song', value: s.name, inline: true },
+                            { name: 'Author', value: s.author, inline: true },
+                            { name: 'Duration', value: inlineCode(s.duration), inline: true },
+                        ];
                     });
 
-                    const embed = new EmbedBuilder().setTitle('Radio Queue').addFields(songs).setTimestamp();
+                    const embed = new EmbedBuilder().setTitle('Radio Queue').addFields(songs.flat()).setTimestamp();
 
                     await interaction.reply({ embeds: [embed] });
                 },
@@ -184,16 +193,47 @@ export default class RadioCommand implements CommandInterface {
 
                     const songs = queue.songs;
 
-                    const songSelect = new SelectMenuBuilder().setCustomId('removeSongSelect');
+                    const songSelect = new SelectMenuBuilder().setCustomId(`${this.command}/remove/select`);
 
-                    const options = songs.map((s) => {
-                        return new SelectMenuOptionBuilder().setLabel(s.name);
+                    const options = songs.map((s, i) => {
+                        return new SelectMenuOptionBuilder().setLabel(s.name).setValue(`${i}`);
                     });
 
-                    songSelect.addOptions(options);
+                    songSelect
+                        .addOptions(options)
+                        .setPlaceholder('Select a song to remove')
+                        .setMinValues(1)
+                        .setMaxValues(1);
+
+                    const actionRow = new ActionRowBuilder().addComponents(songSelect);
+
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    await interaction.reply({ components: [actionRow], ephemeral: true });
                 },
             },
         );
+
+        this.interactionHandlers.push({
+            handler: `${this.command}/remove/select`,
+            type: InteractionType.Select,
+            runHandler: async (interaction) => {
+                const selectResponse = interaction as SelectMenuInteraction;
+                const result = this.discordMusicService.removeFromQueue(
+                    selectResponse.guildId as string,
+                    parseInt(selectResponse.values.pop() as string),
+                );
+
+                if (!result) {
+                    await selectResponse.reply('Failed to remove song');
+                    return;
+                }
+
+                await selectResponse.reply(
+                    `Song ${inlineCode(result.name)} removed from queue by ${selectResponse.user.toString()}`,
+                );
+            },
+        });
     }
 
     async runCommand(interaction: ChatInputCommandInteraction) {
@@ -237,7 +277,9 @@ export default class RadioCommand implements CommandInterface {
                 subcommand
                     .setName('repeat')
                     .setDescription('Set the current song to repeat')
-                    .addBooleanOption((option) => option.setName('on').setDescription('Repeat on or off')),
+                    .addBooleanOption((option) =>
+                        option.setName('on').setDescription('Repeat on or off').setRequired(true),
+                    ),
             )
             .addSubcommand((subcommand) =>
                 subcommand.setName('progress').setDescription('Get the progress of the current song'),
@@ -248,13 +290,40 @@ export default class RadioCommand implements CommandInterface {
     async playSong(interaction: ChatInputCommandInteraction, search: string | Song, voiceChannel: VoiceBasedChannel) {
         if (!interaction.guildId) return;
 
-        const song = await this.discordMusicService.addToQueue(search, interaction.guildId, voiceChannel);
+        const song = await this.discordMusicService.addToQueue(
+            search,
+            interaction.guildId,
+            voiceChannel,
+            interaction.user,
+        );
 
         if (!song) {
             await interaction.editReply('Song failed to play');
             return;
         }
 
-        return await interaction.editReply(`Song added to queue: ${song.name}`);
+        const embed = new EmbedBuilder().addFields(
+            { name: 'Name', value: song.name, inline: true },
+            { name: 'Author', value: song.author, inline: true },
+            { name: 'Duration', value: inlineCode(song.duration), inline: true },
+        );
+
+        const user = await this.discordService.getUserById((song.requestedBy as User).id);
+
+        if (user) {
+            embed.addFields({ name: 'Added By', value: user.toString(), inline: true });
+        }
+
+        embed.setThumbnail(song.thumbnail);
+
+        if (song.isFirst) {
+            embed.setTitle('Song Playing Now');
+            embed.setColor(Colors.Green);
+        } else {
+            embed.setTitle('Song Added to Queue');
+            embed.setColor(Colors.Blue);
+        }
+
+        return await interaction.editReply({ embeds: [embed] });
     }
 }

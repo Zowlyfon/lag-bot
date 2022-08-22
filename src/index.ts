@@ -16,6 +16,7 @@ import RadioCommand from './commands/radio.command';
 import DiscordMusicService from './services/discord-music.service';
 import StockCommand from './commands/stock.command';
 import { filter } from 'rxjs';
+import { InteractionType } from './interaction-type.enum';
 
 const discordService = Container.get(DiscordService);
 
@@ -54,6 +55,22 @@ discordService
                         console.log(`Command: ${command.command} ${subCommand.command}`);
                         await subCommand.runCommand(interaction);
                     });
+            });
+
+            command.interactionHandlers.forEach((h) => {
+                if (h.type === InteractionType.Select) {
+                    discordService
+                        .getSelectInteractions()
+                        .pipe(
+                            filter((i) => {
+                                return i.customId === h.handler;
+                            }),
+                        )
+                        .subscribe(async (interaction) => {
+                            console.log(`Handler: ${h.handler}`);
+                            await h.runHandler(interaction);
+                        });
+                }
             });
 
             discordService

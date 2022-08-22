@@ -2,7 +2,7 @@ import ServiceInterface from '../service.interface';
 import DiscordService from './discord.service';
 import { Service } from 'typedi';
 import { Player, Queue, Song, Utils } from 'discord-music-player';
-import { VoiceBasedChannel } from 'discord.js';
+import { User, VoiceBasedChannel } from 'discord.js';
 
 //
 
@@ -29,12 +29,12 @@ export default class DiscordMusicService implements ServiceInterface {
         return Utils.link(url, {}, queue);
     }
 
-    async addToQueue(songQuery: string | Song, guildId: string, voiceChannel: VoiceBasedChannel) {
+    async addToQueue(songQuery: string | Song, guildId: string, voiceChannel: VoiceBasedChannel, user: User) {
         const queue = this.player.createQueue(guildId);
         await queue.join(voiceChannel);
         console.log('Trying to play: ', songQuery);
         try {
-            return await queue.play(songQuery);
+            return await queue.play(songQuery, { requestedBy: user });
         } catch (e) {
             console.error(e);
             return;
@@ -82,5 +82,11 @@ export default class DiscordMusicService implements ServiceInterface {
         const guildQueue = this.player.getQueue(guildId);
         if (!guildQueue) return;
         return guildQueue.createProgressBar();
+    }
+
+    removeFromQueue(guildId: string, index: number) {
+        const guildQueue = this.player.getQueue(guildId);
+        if (!guildQueue) return;
+        return guildQueue.remove(index);
     }
 }

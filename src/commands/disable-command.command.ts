@@ -10,11 +10,13 @@ import {
 } from 'discord.js';
 import { SubCommand } from '../sub-command.type';
 import { Subject } from 'rxjs';
+import { InteractionHandler } from '../interaction-handler.type';
 
 @Service()
 export default class DisableCommandCommand implements CommandInterface {
     command = 'disable-command';
     subCommands = new Array<SubCommand>();
+    interactionHandlers = new Array<InteractionHandler>();
     subCommandSubject = new Subject<ChatInputCommandInteraction>();
 
     constructor(private discordService: DiscordService, private db: DatabaseService) {}

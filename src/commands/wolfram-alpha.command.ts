@@ -10,11 +10,13 @@ import EnvironmentService from '../services/environment.service';
 import axios from 'axios';
 import { SubCommand } from '../sub-command.type';
 import { Subject } from 'rxjs';
+import { InteractionHandler } from '../interaction-handler.type';
 
 @Service()
 export default class WolframAlphaCommand implements CommandInterface {
     command = 'wa';
     subCommands = new Array<SubCommand>();
+    interactionHandlers = new Array<InteractionHandler>();
     subCommandSubject = new Subject<ChatInputCommandInteraction>();
 
     constructor(private env: EnvironmentService) {}
