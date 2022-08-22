@@ -47,12 +47,10 @@ export default class DiscordService implements ServiceInterface {
             });
 
         this.client.on('interactionCreate', async (interaction: Interaction) => {
-            console.log('interaction', interaction);
             this.interactions.next(interaction);
         });
 
         this.client.on('messageCreate', async (message: Message) => {
-            console.log('message', message);
             this.messages.next(message);
         });
 

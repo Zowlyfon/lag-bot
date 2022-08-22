@@ -63,9 +63,11 @@ export default class WolframAlphaCommand implements CommandInterface {
                 }
 
                 const podTexts: string[] = [];
+                // eslint-disable-next-line  @typescript-eslint/no-explicit-any
                 answer.queryresult.pods.forEach((pod: any) => {
                     if (pod.id !== 'Input' && pod.primary === true) {
                         const results: string[] = [];
+                        // eslint-disable-next-line  @typescript-eslint/no-explicit-any
                         pod.subpods.forEach((subpod: any) => {
                             results.push(subpod.plaintext);
                         });

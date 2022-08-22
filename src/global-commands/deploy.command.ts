@@ -73,6 +73,9 @@ export default class DeployCommand implements CommandInterface {
     }
 
     slashCommandBuilder(): SlashCommandSubcommandsOnlyBuilder | SlashCommandBuilder {
-        return new SlashCommandBuilder().setName(this.command).setDescription('Deploy slash commands to guild');
+        return new SlashCommandBuilder()
+            .setName(this.command)
+            .setDescription('Deploy slash commands to guild')
+            .setDefaultMemberPermissions(8);
     }
 }

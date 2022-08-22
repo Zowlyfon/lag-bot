@@ -77,4 +77,10 @@ export default class DiscordMusicService implements ServiceInterface {
         if (!guildQueue) return;
         return guildQueue.setRepeatMode(Number(repeat));
     }
+
+    getProgress(guildId: string) {
+        const guildQueue = this.player.getQueue(guildId);
+        if (!guildQueue) return;
+        return guildQueue.createProgressBar();
+    }
 }

@@ -2,7 +2,10 @@ import CommandInterface from '../command.interface';
 import { Service } from 'typedi';
 import {
     ChatInputCommandInteraction,
+    EmbedBuilder,
     GuildMember,
+    SelectMenuBuilder,
+    SelectMenuOptionBuilder,
     SlashCommandBuilder,
     SlashCommandSubcommandsOnlyBuilder,
     VoiceBasedChannel,
@@ -88,13 +91,21 @@ export default class RadioCommand implements CommandInterface {
                         return;
                     }
 
+                    /*
                     let songs = 'Queue: ';
                     console.log('Queue', queue);
                     queue.songs.forEach((s) => {
                         songs = songs + s.name + '\n';
                     });
+                     */
 
-                    await interaction.reply(songs);
+                    const songs = queue.songs.map((s) => {
+                        return { name: s.author, value: s.name };
+                    });
+
+                    const embed = new EmbedBuilder().setTitle('Radio Queue').addFields(songs).setTimestamp();
+
+                    await interaction.reply({ embeds: [embed] });
                 },
             },
             {
@@ -134,8 +145,6 @@ export default class RadioCommand implements CommandInterface {
             {
                 command: 'repeat',
                 runCommand: async (interaction) => {
-                    console.log('radio repeat');
-
                     const repeat = interaction.options.getBoolean('repeat');
 
                     if (repeat === null) return;
@@ -148,6 +157,40 @@ export default class RadioCommand implements CommandInterface {
                     }
 
                     await interaction.reply('Repeat set to ' + (repeat ? 'On' : 'Off'));
+                },
+            },
+            {
+                command: 'progress',
+                runCommand: async (interaction) => {
+                    const progressBar = this.discordMusicService.getProgress(interaction.guildId as string);
+
+                    if (!progressBar) {
+                        await interaction.reply('No song playing');
+                        return;
+                    }
+
+                    await interaction.reply(progressBar.toString());
+                },
+            },
+            {
+                command: 'remove',
+                runCommand: async (interaction) => {
+                    const queue = this.discordMusicService.getQueue(interaction.guildId as string);
+
+                    if (!queue) {
+                        await interaction.reply('No songs in queue');
+                        return;
+                    }
+
+                    const songs = queue.songs;
+
+                    const songSelect = new SelectMenuBuilder().setCustomId('removeSongSelect');
+
+                    const options = songs.map((s) => {
+                        return new SelectMenuOptionBuilder().setLabel(s.name);
+                    });
+
+                    songSelect.addOptions(options);
                 },
             },
         );
@@ -195,7 +238,11 @@ export default class RadioCommand implements CommandInterface {
                     .setName('repeat')
                     .setDescription('Set the current song to repeat')
                     .addBooleanOption((option) => option.setName('on').setDescription('Repeat on or off')),
-            );
+            )
+            .addSubcommand((subcommand) =>
+                subcommand.setName('progress').setDescription('Get the progress of the current song'),
+            )
+            .addSubcommand((subcommand) => subcommand.setName('remove').setDescription('Remove song from queue'));
     }
 
     async playSong(interaction: ChatInputCommandInteraction, search: string | Song, voiceChannel: VoiceBasedChannel) {
