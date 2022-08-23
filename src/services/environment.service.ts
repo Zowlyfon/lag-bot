@@ -46,4 +46,12 @@ export default class EnvironmentService {
         }
         return '';
     }
+
+    getOpenWeatherKey(): string {
+        const ow = process.env.OPEN_WEATHER;
+        if (ow) {
+            return ow;
+        }
+        return '';
+    }
 }
