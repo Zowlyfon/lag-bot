@@ -20,6 +20,8 @@ import { InteractionType } from './interaction-type.enum';
 import FetishCommand from './commands/fetish.command';
 import WeatherCommand from './commands/weather.command';
 import WeatherService from './services/weather.service';
+import BibleCommand from './commands/bible.command';
+import BibleService from './services/bible.service';
 
 const discordService = Container.get(DiscordService);
 
@@ -33,12 +35,14 @@ commands.push(Container.get(RadioCommand));
 commands.push(Container.get(StockCommand));
 commands.push(Container.get(FetishCommand));
 commands.push(Container.get(WeatherCommand));
+commands.push(Container.get(BibleCommand));
 
 const services = new Array<ServiceInterface>();
 services.push(Container.get(QuoteService));
 services.push(Container.get(DatabaseService));
 services.push(Container.get(DiscordMusicService));
 services.push(Container.get(WeatherService));
+services.push(Container.get(BibleService));
 
 discordService
     .init()
