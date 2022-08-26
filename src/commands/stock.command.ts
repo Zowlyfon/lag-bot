@@ -40,7 +40,10 @@ export default class StockCommand implements CommandInterface {
 
                 await interaction.deferReply();
 
-                const quote = await yahooFinance.quote(ticker as string);
+                let quote;
+                quote = await yahooFinance.quote(ticker as string).catch(() => {
+                    quote = undefined;
+                });
 
                 if (!quote) {
                     await interaction.deleteReply();
