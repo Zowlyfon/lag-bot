@@ -94,6 +94,8 @@ export default class XkcdCommand implements CommandInterface {
     async sendXkcd(xkcd: any, interaction: ChatInputCommandInteraction) {
         const embed = new EmbedBuilder()
             .setTitle(`${xkcd.data.safe_title} ${xkcd.data.year}-${xkcd.data.month}-${xkcd.data.day} ${xkcd.data.num}`)
+            .setURL(`https://xkcd.com/${xkcd.data.num}`)
+            .setDescription(xkcd.data.alt)
             .setImage(xkcd.data.img)
             .setColor(Colors.Green);
         await interaction.editReply({ embeds: [embed] });
