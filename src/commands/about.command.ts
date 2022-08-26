@@ -25,7 +25,7 @@ export default class AboutCommand implements CommandInterface {
         const embed = new EmbedBuilder()
             .setTitle(`About Lag-Bot`)
             .setURL('https://github.com/Zowlyfon/lag-bot')
-            .setDescription('Lag-Bot was lovely made in TypeScript by Zowlyfon and other GNULag users.')
+            .setDescription('Lag-Bot was lovingly made in TypeScript by Zowlyfon and other GNULag users.')
             .addFields(
                 { name: 'Repository', value: 'https://github.com/Zowlyfon/lag-bot' },
                 { name: 'Licence', value: 'GNU Affero General Public License v3.0' },
