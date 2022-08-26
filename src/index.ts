@@ -22,6 +22,7 @@ import WeatherCommand from './commands/weather.command';
 import WeatherService from './services/weather.service';
 import BibleCommand from './commands/bible.command';
 import BibleService from './services/bible.service';
+import AboutCommand from './commands/about.command';
 
 const discordService = Container.get(DiscordService);
 
@@ -36,6 +37,7 @@ commands.push(Container.get(StockCommand));
 commands.push(Container.get(FetishCommand));
 commands.push(Container.get(WeatherCommand));
 commands.push(Container.get(BibleCommand));
+commands.push(Container.get(AboutCommand));
 
 const services = new Array<ServiceInterface>();
 services.push(Container.get(QuoteService));
