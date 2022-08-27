@@ -1,5 +1,5 @@
 name: Lint
-on: [push]
+on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -8,5 +8,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '16'
+      - name: Install
       - run: npm install
+      - name: Lint
       - run: npm run lint

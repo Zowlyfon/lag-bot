@@ -102,6 +102,7 @@ export default class StockCommand implements CommandInterface {
         return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async runCommand(interaction: ChatInputCommandInteraction) {
         return;
     }
